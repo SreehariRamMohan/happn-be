@@ -14,8 +14,10 @@ import uuid
 
 PORT = "5000"
 app = Flask(__name__)
-cors = CORS(app)
-socketio = SocketIO(app)
+origin = "http://localhost:3000"
+
+cors = CORS(app, resources={r"/*":{"origins": "*", "supports_credentials": True}})
+socketio = SocketIO(app, cors_allowed_origins="*")
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = os.environ.get("HAPPEN_SECRET_KEY")
 
@@ -93,9 +95,16 @@ def uploadFormData():
     friend_code = mongo_user["friend_code"]
 
     db.users.find_one_and_update({'_id': ObjectId(mongo_id)}, { "$set": {"formAnswers": formAnswers }})
-    res = requests.post("http://34.121.220.212:5000/", json={ 'fa1': fa1, 'fa2': fa2, 'fa3': fa3, 'fa4': fa4, 'fa5': fa5, 'friend_code': friend_code })
 
-    return jsonify({"status": "success"}), 200
+    res = requests.post("http://34.121.220.212:5000/questions", json={ 'fa1': fa1, 'fa2': fa2, 'fa3': fa3, 'fa4': fa4, 'fa5': fa5, 'friend_code': friend_code })
+    #  res.status_code == 200
+
+    matchesRes = requests.post("http://34.121.220.212:5000/matches", json={'friend_code': friend_code })
+    matchData = matchesRes.json()
+    print("match data: ")
+    print(matchData)
+
+    return jsonify({"status": "success", "matchData": matchData}), 200
 
 #  @jwt_required
 @app.route('/updateBio', methods=["POST"])
@@ -123,9 +132,30 @@ def updateBio():
     #  db.users.formAnswers.insert_one(formAnswers)
     return jsonify({"status": "success"}), 200
 
-@socketio.event
-def my_event(message):
-    emit('my response', {'data': 'got it!'})
+
+#------------------- SOCKETS AYYYYYYYYYY ----------------#
+
+socketConnections = {}
+
+@socketio.on('connect', namespace="/websockets")
+def connect(): 
+    user_friend_code = request.args.get('friend_code')
+    print(user_friend_code + " connected")
+    socketConnections[user_friend_code] = request.sid
+
+#  @io.on('disconnect')
+#  def disconnect():
+#      print "%s disconnected" % (request.namespace.socket.sessid)
+#      socketConnections.remove(request.namespace)
+
+@socketio.on('send_message', namespace="/websockets")
+def handle_send_message(data): 
+    message = data["message"]
+    sender_friend_code = data["sender_friend_code"]
+    receiver_friend_code = data["receiver_friend_code"]
+    print("receiver: " + receiver_friend_code)
+    if receiver_friend_code in socketConnections: 
+        emit('receive_message', { 'message': message, 'friend_code': sender_friend_code }, room=socketConnections[receiver_friend_code])
 
 
 if __name__ == "__main__":
