@@ -14,7 +14,7 @@ import uuid
 
 PORT = "5000"
 app = Flask(__name__)
-origin = "http://localhost:3000"
+#  origin = "http://localhost:3000"
 
 cors = CORS(app, resources={r"/*":{"origins": "*", "supports_credentials": True}})
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -101,6 +101,10 @@ def uploadFormData():
 
     matchesRes = requests.post("http://34.121.220.212:5000/matches", json={'friend_code': friend_code })
     matchData = matchesRes.json()
+
+    potential_friend_code = matchData["uid"]
+    db.users.find_one_and_update({'_id': ObjectId(mongo_id)}, { "$push": {"friends": potential_friend_code }})
+
     print("match data: ")
     print(matchData)
 
@@ -132,6 +136,12 @@ def updateBio():
     #  db.users.formAnswers.insert_one(formAnswers)
     return jsonify({"status": "success"}), 200
 
+@app.route('/getFriends', methods=["POST"])
+def getFriends(): 
+    mongo_id = request.json["mongo_id"]
+    mongo_user = mongo.db.users.find_one({"username": username})
+    friend_data = mongo_user["friend"]
+    return jsonify({"status": "success", "friends": friend_data}), 200
 
 #------------------- SOCKETS AYYYYYYYYYY ----------------#
 
