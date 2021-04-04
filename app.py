@@ -113,7 +113,7 @@ def updateBio():
     bio = {
         "blurb1": blurb1, 
         "blurb2": blurb2, 
-        "blurb3": blurb3 
+        "blurb3": blurb3,
         "blurb4": blurb4 
     }
 
