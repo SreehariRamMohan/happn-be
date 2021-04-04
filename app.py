@@ -19,7 +19,7 @@ cors = CORS(app, resources={r"/*":{"origins": "*", "supports_credentials": True}
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = os.environ.get("HAPPEN_SECRET_KEY")
-
+ML_SERVER_URL = str(os.environ.get("HAPPEN_ML_SERVER_URL"))
 
 # bcrypt
 bcrypt = Bcrypt(app)
@@ -89,11 +89,9 @@ def uploadFormData():
     friend_code = mongo_user["friend_code"]
 
     db.users.find_one_and_update({'_id': ObjectId(mongo_id)}, { "$set": {"formAnswers": formAnswers }})
+    res = requests.post(ML_SERVER_URL + "questions", json={ 'fa1': fa1, 'fa2': fa2, 'fa3': fa3, 'fa4': fa4, 'fa5': fa5, 'friend_code': friend_code })
 
-    res = requests.post("http://34.121.220.212:5000/questions", json={ 'fa1': fa1, 'fa2': fa2, 'fa3': fa3, 'fa4': fa4, 'fa5': fa5, 'friend_code': friend_code })
-    #  res.status_code == 200
-
-    matchesRes = requests.post("http://34.121.220.212:5000/matches", json={'friend_code': friend_code })
+    matchesRes = requests.post(ML_SERVER_URL + "matches", json={'friend_code': friend_code })
     matchData = matchesRes.json()
 
     potential_friend_code = matchData["uid"]
@@ -107,16 +105,16 @@ def uploadFormData():
 @app.route('/updateBio', methods=["POST"])
 def updateBio(): 
     mongo_id = request.json["mongo_id"]
-    description = request.json["description"]
     blurb1 = request.json["blurb1"]
     blurb2 = request.json["blurb2"]
     blurb3 = request.json["blurb3"]
+    blurb4 = request.json["blurb4"]
 
     bio = {
-        "description": description, 
         "blurb1": blurb1, 
         "blurb2": blurb2, 
         "blurb3": blurb3 
+        "blurb4": blurb4 
     }
 
     #  mongo_user = mongo.db.users.find_one({"username": username})
