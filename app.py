@@ -15,7 +15,8 @@ import uuid
 PORT = "5000"
 app = Flask(__name__)
 
-cors = CORS(app, resources={r"/*":{"origins": "*", "supports_credentials": True}})
+#  cors = CORS(app, resources={r"/*":{"origins": "*", "supports_credentials": True}})
+cors = CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = os.environ.get("HAPPEN_SECRET_KEY")

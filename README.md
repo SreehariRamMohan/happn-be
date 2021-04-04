@@ -1,11 +1,11 @@
 
 ## Resources & REST API table
-| URL/ENDPOINT                            | VERB   | DESCRIPTION                                              |
-| --------------------------------------- | ------ | -----------------------------------------                |
-| /login                                  | POST   | Logs user in { username, password } and returns mongo_id |
-| /signup                                 | POST   | Creates user { username, password } and returns mongo_id |
-| /uploadFormData/                        | POST   | Updates form for matching { fq1, fq2, fq3, fq4, fq5 }    |
-| /updateBio/                             | POST   | Updates user bio { description, blurb1, blurb2, blurb3 } |
+| URL/ENDPOINT                            | VERB   | DESCRIPTION                                                        |
+| --------------------------------------- | ------ | -----------------------------------------                          |
+| /login                                  | POST   | Logs user in { username, password } and returns mongo_id           |
+| /signup                                 | POST   | Creates user { username, password } and returns mongo_id           |
+| /uploadFormData/                        | POST   | Updates form for matching { fq1, fq2, fq3, fq4, fq5, mongo_id }    |
+| /updateBio/                             | POST   | Updates user bio { description, blurb1, blurb2, blurb3, mongo_id } |
 
 | /getFriends/                            | POST   | Returns old matches { mongo_id }                         |
 | /getBio/                                | POST   | Returns bio { mongo_id }                                 |
