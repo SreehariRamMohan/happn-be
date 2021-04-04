@@ -14,15 +14,12 @@ import uuid
 
 PORT = "5000"
 app = Flask(__name__)
-#  origin = "http://localhost:3000"
 
 cors = CORS(app, resources={r"/*":{"origins": "*", "supports_credentials": True}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['SECRET_KEY'] = os.environ.get("HAPPEN_SECRET_KEY")
 
-# JWT Manager
-#  jwt = JWTManager(app)
 
 # bcrypt
 bcrypt = Bcrypt(app)
@@ -51,8 +48,6 @@ def signup():
 
     print(mongo_id)
 
-    #  access_token = create_access_token(identity=username, expires_delta=False)
-
     return_json = {"status": "success", 'mongo_id': mongo_id}
     return json.dumps(return_json, default=str), 200
 
@@ -63,17 +58,16 @@ def login():
 
     mongo_user = mongo.db.users.find_one({"username": username})
     pw_hash = mongo_user["password"]
+    friend_code = mongo_user["friend_code"]
 
     if bcrypt.check_password_hash(pw_hash, password):
 
-        #  access_token = create_access_token(identity=username, expires_delta=False)
         print(json.dumps(mongo_user["_id"], default=str))
-        return_json = {"status": "success", 'mongo_id': mongo_user["_id"]}
+        return_json = {"status": "success", 'mongo_id': mongo_user["_id"], 'friend_code': friend_code }
         return json.dumps(return_json, default=str), 200
     else: 
         return jsonify({"status": "error", "message": "incorrect username or password"}), 401
 
-#  @jwt_required
 @app.route('/uploadFormData', methods=["POST"])
 def uploadFormData(): 
     mongo_id = request.json["mongo_id"]
@@ -110,7 +104,6 @@ def uploadFormData():
 
     return jsonify({"status": "success", "matchData": matchData}), 200
 
-#  @jwt_required
 @app.route('/updateBio', methods=["POST"])
 def updateBio(): 
     mongo_id = request.json["mongo_id"]
@@ -136,12 +129,35 @@ def updateBio():
     #  db.users.formAnswers.insert_one(formAnswers)
     return jsonify({"status": "success"}), 200
 
+@app.route('/getUserInfo', methods=["POST"])
+def getUserInfo(): 
+    mongo_id = request.json["mongo_id"]
+    mongo_user = mongo.db.users.find_one({"username": username})
+    friend_data = mongo_user["friend"]
+    bio = mongo_user["bio"]
+    formData = mongo_user["formData"]
+    return jsonify({"status": "success", "friends": friend_data, "formData": formData, "bio": bio}), 200
+
 @app.route('/getFriends', methods=["POST"])
 def getFriends(): 
     mongo_id = request.json["mongo_id"]
     mongo_user = mongo.db.users.find_one({"username": username})
     friend_data = mongo_user["friend"]
     return jsonify({"status": "success", "friends": friend_data}), 200
+
+@app.route('/getBio', methods=["POST"])
+def getBio(): 
+    mongo_id = request.json["mongo_id"]
+    mongo_user = mongo.db.users.find_one({"username": username})
+    bio = mongo_user["bio"]
+    return jsonify({"status": "success", "bio": bio}), 200
+
+@app.route('/getFormData', methods=["POST"])
+def getFormData(): 
+    mongo_id = request.json["mongo_id"]
+    mongo_user = mongo.db.users.find_one({"username": username})
+    formData = mongo_user["formData"]
+    return jsonify({"status": "success", "formData": formData}), 200
 
 #------------------- SOCKETS AYYYYYYYYYY ----------------#
 
